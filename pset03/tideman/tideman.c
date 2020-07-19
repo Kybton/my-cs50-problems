@@ -25,6 +25,11 @@ pair pairs[MAX * (MAX - 1) / 2];
 
 int pair_count;
 int candidate_count;
+int start;
+int end;
+int locked_count;
+//bool win;
+bool cycle;
 
 // Function prototypes
 bool vote(int rank, string name, int ranks[]);
@@ -33,6 +38,7 @@ void add_pairs(void);
 void sort_pairs(void);
 void lock_pairs(void);
 void print_winner(void);
+void find_end(int winner_index);
 
 int main(int argc, string argv[])
 {
@@ -109,12 +115,12 @@ int main(int argc, string argv[])
     for (int i = 0; i < pair_count; i++)
     {
         printf("%s beats %s with %i-%i.\n", candidates[pairs[i].winner], candidates[pairs[i].loser], preferences[pairs[i].winner][pairs[i].loser], preferences[pairs[i].loser][pairs[i].winner]);
-    }
+    }*/
 
     sort_pairs();
     lock_pairs();
     print_winner();
-    return 0;*/
+    return 0;
 }
 
 // Update ranks given a new vote
@@ -213,46 +219,74 @@ void sort_pairs(void)
 
     //printf("after sorted\n");
     //printf("\n");
-
-    /*for (int i = 0; i < pair_count; i++)
-    {
-        printf("%s beats %s with %i-%i.\n", candidates[pairs[i].winner], candidates[pairs[i].loser], preferences[pairs[i].winner][pairs[i].loser], preferences[pairs[i].loser][pairs[i].winner]);
-    }
-    return;*/
+    //printf("pair count: %i\n", pair_count);
+    //for (int i = 0; i < pair_count; i++)
+    //{
+        //printf("%s beats %s with %i-%i.\n", candidates[pairs[i].winner], candidates[pairs[i].loser], preferences[pairs[i].winner][pairs[i].loser], preferences[pairs[i].loser][pairs[i].winner]);
+    //}
+    return;
 }
 
 // Lock pairs into the candidate graph in order, without creating cycles
 void lock_pairs(void)
 {
+    /*// the init winner of the graph and the last loser of the graph
+    typedef struct
+    {
+        int winner;
+        int loser;
+    }
+    current_pair;*/
+    
+    //current_pair current_graph[0];
+
     for (int i = 0; i < pair_count; i++)
     {
-        int locked_count = 0;
-
-        //printf("***locked[%i][%i] has been locked.***\n", pairs[i].winner, pairs[i].loser);
         locked[pairs[i].winner][pairs[i].loser] = true;
+        //printf("locked[%i][%i]\n", pairs[i].winner, pairs[i].loser);
 
-        // this loop is just to check whether the last created lock creat a cycle or not
-        for (int a = 0; a < candidate_count; a++)
+        start = pairs[i].winner;
+        cycle = false;
+        //end = pairs[i].loser;
+        //find_end(start);
+
+        // this loop is to check cycle
+        for (int k = 0; k < candidate_count; k++)
         {
-            for (int b = 0; b < candidate_count; b++)
+            if (locked[pairs[i].loser][k] == true)
             {
-                //printf("checking locked[%i][%i] rn\n", b, a);
-                if (locked[b][a] == true)
-                {   
-                    //printf("***one lock found on locked[%i][%i]***\n", b, a);
-                    locked_count++;
-                    b = candidate_count;
-                }
+                //start = pairs[i].loser;
+                find_end(start);
             }
         }
 
-        //printf("locked count = %i\n", locked_count);
-        //printf("candidate count = %i\n", candidate_count);
-
-        if (locked_count == candidate_count)
+        if (cycle)
         {
-            //printf("!!!locked[%i][%i] has been unlocked cus it created a cycle!!!\n", pairs[i].winner, pairs[i].loser);
             locked[pairs[i].winner][pairs[i].loser] = false;
+            //printf("unlocked current pair\n");
+        }
+    }
+}
+
+void find_end(int winner_index)
+{
+    int a;
+    //printf("entered find_end func!!\n");
+    //printf("end: [%i], start[%i]\n", end, start);
+
+    if (end == start)
+    {
+        //printf("end == start\n");
+        cycle = true;
+        return;
+    }
+
+    for (int i = 0; i < candidate_count; i++)
+    {
+        if (locked[winner_index][i] == true)
+        {
+            end = i;
+            return find_end(end);
         }
     }
     return;
