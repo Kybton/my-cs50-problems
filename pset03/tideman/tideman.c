@@ -28,7 +28,6 @@ int candidate_count;
 int start;
 int end;
 int locked_count;
-//bool win;
 bool cycle;
 
 // Function prototypes
@@ -97,26 +96,7 @@ int main(int argc, string argv[])
         printf("\n");
     }
 
-    /*for (int i = 0; i < candidate_count; i++)
-    {
-        for (int j = 0; j < candidate_count; j++)
-        {
-            printf("preferences[%i][%i] is %i.\n", i, j, preferences[i][j]);
-        }
-    }*/
-
     add_pairs();
-
-    /*for (int i = 0; i < pair_count; i++)
-    {
-        printf("pair %i. winner:%s. loser:%s.\n", i, candidates[pairs[i].winner], candidates[pairs[i].loser]);
-    }
-
-    for (int i = 0; i < pair_count; i++)
-    {
-        printf("%s beats %s with %i-%i.\n", candidates[pairs[i].winner], candidates[pairs[i].loser], preferences[pairs[i].winner][pairs[i].loser], preferences[pairs[i].loser][pairs[i].winner]);
-    }*/
-
     sort_pairs();
     lock_pairs();
     print_winner();
@@ -148,11 +128,11 @@ void record_preferences(int ranks[])
     for (int i = 0; i < candidate_count - 1; i++)
     {
         firstcan = ranks[i];
-        
+
         for (int j = i + 1; j < candidate_count; j++)
         {
             secondcan = ranks[j];
-            preferences[firstcan][secondcan]++;            
+            preferences[firstcan][secondcan]++;
         }
     }
     return;
@@ -171,7 +151,7 @@ void add_pairs(void)
             {
                 pairs[a].winner = i;
                 pairs[a].loser = j;
-                a++;            
+                a++;
             }
         }
     }
@@ -191,12 +171,12 @@ void sort_pairs(void)
     temp_pair;
 
     temp_pair temp_pairs[0];
-    
+
     for (int i = 0; i < pair_count - 1; i++)
     {
         // setting up strongest pair and it will be used to compare to other pairs
         int strongest_pair = preferences[pairs[i].winner][pairs[i].loser] - preferences[pairs[i].loser][pairs[i].winner];
-        
+
         for (int j = i + 1; j < pair_count; j++)
         {
             int pair_diff;
@@ -216,74 +196,50 @@ void sort_pairs(void)
             }
         }
     }
-
-    //printf("after sorted\n");
-    //printf("\n");
-    //printf("pair count: %i\n", pair_count);
-    //for (int i = 0; i < pair_count; i++)
-    //{
-        //printf("%s beats %s with %i-%i.\n", candidates[pairs[i].winner], candidates[pairs[i].loser], preferences[pairs[i].winner][pairs[i].loser], preferences[pairs[i].loser][pairs[i].winner]);
-    //}
     return;
 }
 
 // Lock pairs into the candidate graph in order, without creating cycles
 void lock_pairs(void)
 {
-    /*// the init winner of the graph and the last loser of the graph
-    typedef struct
-    {
-        int winner;
-        int loser;
-    }
-    current_pair;*/
-    
-    //current_pair current_graph[0];
+    int winners_ary[candidate_count];
 
     for (int i = 0; i < pair_count; i++)
     {
         locked[pairs[i].winner][pairs[i].loser] = true;
-        //printf("locked[%i][%i]\n", pairs[i].winner, pairs[i].loser);
 
-        start = pairs[i].winner;
+        start = pairs[i].loser;
+        end = pairs[i].winner;
         cycle = false;
-        //end = pairs[i].loser;
-        //find_end(start);
 
         // this loop is to check cycle
         for (int k = 0; k < candidate_count; k++)
         {
-            if (locked[pairs[i].loser][k] == true)
+            if (locked[k][end] == true)
             {
-                //start = pairs[i].loser;
-                find_end(start);
+                find_end(end);
             }
         }
 
         if (cycle)
         {
             locked[pairs[i].winner][pairs[i].loser] = false;
-            //printf("unlocked current pair\n");
         }
     }
 }
 
 void find_end(int winner_index)
 {
-    int a;
-    //printf("entered find_end func!!\n");
-    //printf("end: [%i], start[%i]\n", end, start);
-
     if (end == start)
     {
-        //printf("end == start\n");
         cycle = true;
         return;
     }
 
     for (int i = 0; i < candidate_count; i++)
     {
-        if (locked[winner_index][i] == true)
+        // if winner is lose to i set end to i
+        if (locked[i][winner_index] == true)
         {
             end = i;
             return find_end(end);
